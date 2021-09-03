@@ -41,7 +41,6 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 	private JTextField txtServerName = new JTextField(10);
 	private JTextField txtUser ;
 	private JLabel portlb = new JLabel();
-	private JButton connect  = new JButton("Tham gia");
 	private JButton send = new JButton("Gửi");
 	private JButton delete = new JButton("Xóa Lịch sử");
 	private JPanel panelControl = new JPanel(new GridLayout(4,2));
@@ -68,10 +67,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 	private JButton sendImg = new JButton("Gửi ảnh");
 	private JButton sendFile = new JButton("Gửi File");
 	private int port = Constant.port;
-	JLabel lbNameFile ;
-	JButton dowloadf ;
-	private JLabel lbProcessDown ; 
-	File file ; 
+
 	/**
 	 * Launch the application.
 	 */
@@ -108,18 +104,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 		panelControl.add(lblPort);
 		portlb.setText("");
 		panelControl.add(portlb);
-		panelControl.add(connect);
-		panelfile = new JPanel();
-		panelfile.setLayout(new BoxLayout(panelfile, BoxLayout.Y_AXIS));
-		lbNameFile = new JLabel("");
-		dowloadf = new JButton("Tải về");
-		dowloadf.addActionListener(this);
-		lbProcessDown = new JLabel(""); 
-		panelfile.add(lbNameFile);
-		panelfile.add(dowloadf);
-		panelfile.add(lbProcessDown);
-		
-		panelTop.add(panelfile, BorderLayout.WEST);
+
 		panelTop.add(panelControl, BorderLayout.EAST);
 		log = new JList(listData);
 		log.setCellRenderer(new CustomCell());
@@ -128,7 +113,6 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 		scroll.setPreferredSize(getPreferredSize());
 		scroll.createVerticalScrollBar();
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		connect.addActionListener(this);
 
 		JPanel panel = new JPanel(new BorderLayout());
 		mess.addKeyListener(this);
@@ -148,7 +132,49 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 	
 
 
+		log.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				JList theList = (JList) e.getSource(); 
 
+				int index = theList.locationToIndex(e.getPoint()); 
+				packet packetSelect = (packet)theList.getModel().getElementAt(index);
+				if( packetSelect.getFile() != null) {
+					File file = packetSelect.getFile(); 
+					if(JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn tải file: "+ file.getName()) == 0) 
+							dowloadfile(file);
+				}
+						
+				
+			}
+			
+		});
 		
 		panel.add(imagePanel, BorderLayout.SOUTH);
 		
@@ -206,16 +232,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 		
 
 		}
-		// dowload file 
-		if(e.getActionCommand().equals("Tải về")) {
-			if(file != null) {
-				if(JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn tải file: "+ file.getName()) == 0) 
-					dowloadfile(file);
-			}else {
-				JOptionPane.showMessageDialog(null, "Ko có file nào để tải");
-			}
-				
-		}
+
 	}
 	
 
@@ -245,7 +262,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 	// tao file  moi ---------------------------------------------------
 	
 		public void dowloadfile(File file) {
-			lbProcessDown.setText("Đang tải");
+			
 			File file1 = file;
 			File file2 = new File("C:\\Users\\Admin\\Downloads\\"+file1.getName());
 			try {
@@ -257,21 +274,21 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 				
 				OutputStream outFile = new FileOutputStream(file2);
 				while((length = inputFile.read(buffer)) > 0) {
-					System.out.println(length + "---" + "--- " + buffer.length); 
+					
 					outFile.write(buffer, 0, length);
 				}
-				lbProcessDown.setText("Tải thành công");
+				JOptionPane.showMessageDialog(null, "Tải thành công");
+
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				
+				JOptionPane.showMessageDialog(null, "Tải thất bại");
+
 			}
 		}
 // reset giao dien tin nhắn ------------------------------	
 	public void resetData() {
-		listData = new Vector<packet>(); 
-		file = null ; 
-		lbNameFile.setText(""); 
-		lbProcessDown.setText(""); 
+		listData.removeAllElements(); 
+
 	}
 	
 	//nhaanj tin nhan 
@@ -287,10 +304,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 					if( packetReceive != null) {
 						listData.add(packetReceive);
 						log.updateUI();
-						if( packetReceive.getFile() != null) {
-							lbNameFile.setText(packetReceive.getFile().getName());
-							file = packetReceive.getFile();
-						}
+
 						
 					}
 				}
@@ -338,7 +352,7 @@ public class GuiServer extends JFrame implements ActionListener,Serializable, Ke
 		if(re == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile(); 
 			packet paket_sendFile = new packet(txtUser.getText() , "vừa gủi một file: " + file.getName(), getDateTime(), null, file);
-			packet paket_sendFile1 = new packet(txtUser.getText() , "vừa gủi một file: " + file.getName(), getDateTime(), null, file);
+			packet paket_sendFile1 = new packet("me" , "vừa gủi một file: " + file.getName(), getDateTime(), null, file);
 
 			if(server.sendMess(paket_sendFile))
 				listData.add(paket_sendFile1);
