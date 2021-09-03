@@ -13,9 +13,8 @@ import java.awt.*;
 
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-
-
-
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.util.*;
@@ -41,7 +40,6 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 	private JTextField txtServerName = new JTextField(10);
 	private JTextField txtUser ;
 	private JLabel portlb = new JLabel();
-	private JButton connect  = new JButton("Tham gia");
 	private JButton send = new JButton("Gửi");
 	private JButton delete = new JButton("Xóa Lịch sử");
 	private JPanel panelControl = new JPanel(new GridLayout(4,2));
@@ -66,12 +64,7 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 	private JButton sendImg 	= new JButton("Gửi ảnh");
 	private JButton sendFile 	= new JButton("Gửi File");
 	private int port = Constant.port;
-	private JLabel lbNameFile ;
-	private JLabel lbProcessDown ; 
-	private JButton dowloadf ;
-	private JComboBox comboxFile ; 
-	Vector<String> vectorFile = new Vector<String>(); 
-	private File file ;
+
 	
 	/**
 	 * Launch the application.
@@ -109,25 +102,8 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 		panelControl.add(lblPort);
 		portlb.setText("");
 		panelControl.add(portlb);
-		panelControl.add(connect);
 		
-		panelfile = new JPanel();
-		panelfile.setLayout(new BoxLayout(panelfile, BoxLayout.Y_AXIS));
-		lbNameFile = new JLabel("");
-		dowloadf = new JButton("Tải về");
-		dowloadf.addActionListener(this);
-		lbProcessDown = new JLabel(""); 
-		vectorFile.add("hsaj"); 
-		vectorFile.add("jdlfk");
-		comboxFile = new JComboBox(vectorFile);
-		comboxFile.setSize(50, 50);
-		panelfile.add(lbNameFile);
-		panelfile.add(dowloadf);
-		panelfile.add(lbProcessDown); 
-		//panelfile.add(comboxFile); 
 
-		
-		panelTop.add(panelfile, BorderLayout.WEST);
 		panelTop.add(panelControl, BorderLayout.EAST);
 		log = new JList(listData);
 		
@@ -137,7 +113,6 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 		scroll.setPreferredSize(getPreferredSize());
 		scroll.createVerticalScrollBar();
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		connect.addActionListener(this);
 
 		JPanel panel = new JPanel(new BorderLayout());
 		mess.addKeyListener(this);
@@ -154,10 +129,50 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 		delete.addActionListener(this);
 		imagePanel.add(sendImg);
 		sendImg.addActionListener(this);
-	
 
+		log.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				JList theList = (JList) e.getSource(); 
 
-
+				int index = theList.locationToIndex(e.getPoint()); 
+				packet packetSelect = (packet)theList.getModel().getElementAt(index);
+				if( packetSelect.getFile() != null) {
+					File file = packetSelect.getFile(); 
+					if(JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn tải file: "+ file.getName()) == 0) 
+							dowloadfile(file);
+				}
+						
+				
+			}
+			
+		});
 		
 		panel.add(imagePanel, BorderLayout.SOUTH);
 		
@@ -167,7 +182,7 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 		contentPane.add(panelTop, BorderLayout.NORTH);
 		contentPane.add(scroll,BorderLayout.CENTER);
 		contentPane.add(panel,BorderLayout.SOUTH);
-		
+
 		setContentPane(contentPane);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 619, 466);
@@ -207,16 +222,6 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 			
 		}
 		
-		// dowload file 
-		if(e.getActionCommand().equals("Tải về")) {
-			if(file != null) {
-				if(JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn tải file: "+ file.getName()) == 0) 
-					dowloadfile(file);
-			}else {
-				JOptionPane.showMessageDialog(null, "Ko có file nào để tải");
-			}
-				
-		}
 // xóa lich sử --------------------------------------------------
 		if(e.getActionCommand().equals("Xóa Lịch sử")) {
 			resetData();
@@ -263,7 +268,6 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 // tao file  moi ---------------------------------------------------
 	
 	public void dowloadfile(File file) {
-		lbProcessDown.setText("Đang tải");
 		File file1 = file;
 		File file2 = new File("C:\\Users\\Admin\\Downloads\\"+file1.getName());
 		try {
@@ -275,21 +279,18 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 			
 			OutputStream outFile = new FileOutputStream(file2);
 			while((length = inputFile.read(buffer)) > 0) {
-				System.out.println(length + "---" + "--- " + buffer.length); 
 				outFile.write(buffer, 0, length);
 			}
-			lbProcessDown.setText("Tải thành công");
+			JOptionPane.showMessageDialog(null, "Tải thành công");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			
+			JOptionPane.showMessageDialog(null, "Tải thất bại");
+
 		}
 	}
 	// reset giao dien tin nhắn ------------------------------	
 		public void resetData() {
-			listData = new Vector<packet>(); 
-			file = null ; 
-			lbNameFile.setText(""); 
-			lbProcessDown.setText(""); 
+			listData.removeAllElements();
 		}
 	// client receive mess
 	public void GClient_receirve() {
@@ -304,10 +305,6 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 					if( packetReceive != null) {
 						listData.add(packetReceive);
 						log.updateUI();
-						if( packetReceive.getFile() != null) {
-							lbNameFile.setText(packetReceive.getFile().getName());
-							file = packetReceive.getFile(); 
-						}
 					}
 				}
 				
@@ -328,8 +325,8 @@ public class GuiClient extends JFrame implements ActionListener, MouseListener,S
 	// gui client gửi tin 
 	public void GClient_sendMess() {
 		try {
-			File file = new File("C:\\Users\\Admin\\Downloads\\IMG_3715.JPG"); 
-			packet packetSend1 = new packet(username, mess.getText(), getDateTime(), null,file);
+
+			packet packetSend1 = new packet(username, mess.getText(), getDateTime(), null,null);
 			try {
 				client.sendMess(packetSend1);
 			} catch (Exception e1) {
